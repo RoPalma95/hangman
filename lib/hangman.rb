@@ -2,8 +2,7 @@ require 'yaml'
 
 class Hangman
   
-  attr_accessor :game_mode, :word, :incorrect_guesses, :spaces, :guesses, :guessed_word, :saved
-  attr_reader 
+  attr_accessor :game_mode, :word, :incorrect_guesses, :spaces, :guesses, :saved
 
   @@WELCOME_MESSAGE = "\n\tWelcome to Hangman!
   \nPlease select an option:\n
@@ -42,7 +41,6 @@ class Hangman
       @spaces = Array.new(word.length, '_ ')
       @guesses = []
       @incorrect_guesses = 10
-      @guessed_word = false
       @saved = false
       new_game
     else
@@ -51,7 +49,7 @@ class Hangman
   end
 
   def new_game
-    game until incorrect_guesses == 0 || guessed_word == true || saved == true
+    game until incorrect_guesses == 0 || win? || saved == true
     unless saved == true
       game
       puts incorrect_guesses == 0 ? "\n\nYou lose! The correct word was #{word}." : "\n\nCongratulations! You guessed the word!"
@@ -66,7 +64,7 @@ class Hangman
       self.saved = true
     else
       display_spaces
-      unless guessed_word == true || incorrect_guesses == 0
+      unless win? || incorrect_guesses == 0
         make_guess
         check_guess
       end
@@ -87,12 +85,15 @@ class Hangman
     current_guess = guesses.last.strip
     if word.include?(current_guess)
       word.split('').each_with_index do |letter, index|
-        letter == current_guess ? spaces[index] = letter : nil
+        letter == current_guess ? self.spaces[index] = letter : nil
       end
     else
       self.incorrect_guesses -= 1
     end
-    spaces.include?("_ ") ? nil : self.guessed_word = true
+  end
+
+  def win?
+    word == spaces.join
   end
 
   def save_game
@@ -112,7 +113,6 @@ class Hangman
     self.spaces = yaml[0].spaces
     self.guesses = yaml[0].guesses
     self.incorrect_guesses = yaml[0].incorrect_guesses
-    self.guessed_word = yaml[0].guessed_word
     self.saved = yaml[0].saved
 
     self.guesses.pop

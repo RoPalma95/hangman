@@ -1,34 +1,28 @@
 ---
 - !ruby/object:Hangman
   game_mode: n
-  word: raconteuse
+  word: antisocial
   spaces:
-  - r
   - a
-  - c
   - '_ '
-  - n
-  - t
-  - e
+  - '_ '
   - '_ '
   - s
-  - e
+  - '_ '
+  - '_ '
+  - '_ '
+  - a
+  - '_ '
   guesses:
+  - 'd '
+  - 'e '
+  - 's '
   - 'a '
-  - 's '
-  - 'e '
-  - 'l '
-  - 'f '
-  - 'g '
-  - 'e '
-  - 's '
   - 'w '
-  - 'q '
-  - 't '
+  - 's '
+  - 'u '
+  - 'y '
   - 'r '
-  - 'c '
-  - 'n '
   - 'save '
   incorrect_guesses: 3
-  guessed_word: false
   saved: false
