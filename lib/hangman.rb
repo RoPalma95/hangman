@@ -1,19 +1,20 @@
+# frozen_string_literal: true
+
 require 'yaml'
 
 class Hangman
-  
   attr_accessor :game_mode, :word, :incorrect_guesses, :spaces, :guesses, :saved
 
-  @@WELCOME_MESSAGE = "\n\tWelcome to Hangman!
+  @@welcome_message = "\n\tWelcome to Hangman!
   \nPlease select an option:\n
   \t+ [N]ew Game
   \t+ [L]oad Game\n"
 
   def initialize
     system('clear') || system('cls')
-    print @@WELCOME_MESSAGE
+    print @@welcome_message
     @game_mode = select_mode
-    set_game_parameters(game_mode)
+    game_parameters(game_mode)
   end
 
   def select_word(word = '')
@@ -28,14 +29,14 @@ class Hangman
 
   def select_mode
     mode = gets.chomp.downcase
-    until mode == 'n' || mode == 'l'
+    until %w[n l].include?(mode)
       print "Please type 'N' or 'L'(case insensitive): "
       mode = gets.chomp.downcase
     end
     mode
   end
 
-  def set_game_parameters(game_mode)
+  def game_parameters(game_mode)
     if game_mode == 'n'
       @word = select_word
       @spaces = Array.new(word.length, '_ ')
@@ -49,11 +50,11 @@ class Hangman
   end
 
   def new_game
-    game until incorrect_guesses == 0 || win? || saved == true
-    unless saved == true
-      game
-      puts incorrect_guesses == 0 ? "\n\nYou lose! The correct word was #{word}." : "\n\nCongratulations! You guessed the word!"
-    end
+    game until incorrect_guesses.zero? || win? || saved == true
+    return if saved == true
+
+    game
+    puts incorrect_guesses.zero? ? "\n\nYou lose! The correct word was #{word}." : "\n\nCongratulations! You guessed the word!"
   end
 
   def game
@@ -64,7 +65,7 @@ class Hangman
       self.saved = true
     else
       display_spaces
-      unless win? || incorrect_guesses == 0
+      unless win? || incorrect_guesses.zero?
         make_guess
         check_guess
       end
@@ -78,14 +79,14 @@ class Hangman
   end
 
   def make_guess
-    self.guesses.push(gets.chomp.downcase + ' ')
+    guesses.push("#{gets.chomp.downcase} ")
   end
 
   def check_guess
     current_guess = guesses.last.strip
     if word.include?(current_guess)
       word.split('').each_with_index do |letter, index|
-        letter == current_guess ? self.spaces[index] = letter : nil
+        letter == current_guess ? spaces[index] = letter : nil
       end
     else
       self.incorrect_guesses -= 1
@@ -102,7 +103,7 @@ class Hangman
     File.open('./save_files/saved_game.yml', 'w') do |save_file|
       YAML.dump([] << self, save_file)
     end
-    puts "Game Saved\n\n" ; sleep 1
+    puts "Game Saved\n\n"; sleep 1
   end
 
   def load_game
@@ -114,8 +115,7 @@ class Hangman
     self.guesses = yaml[0].guesses
     self.incorrect_guesses = yaml[0].incorrect_guesses
     self.saved = yaml[0].saved
-
-    self.guesses.pop
+    guesses.pop
     puts 'Game Loaded'; sleep 1
     new_game
   end
