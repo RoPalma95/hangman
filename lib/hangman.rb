@@ -1,13 +1,9 @@
-# on boot, load "dictionary.txt" and select a word between 5 and 12 characters long
-require 'pry'
+require 'yaml'
 
 class Hangman
-  private
-
-  attr_accessor :incorrect_guesses, :spaces, :guesses, :guessed_word
-  attr_reader :word, :game_mode
-
-  public
+  
+  attr_accessor :game_mode, :word, :incorrect_guesses, :spaces, :guesses, :guessed_word, :saved
+  attr_reader 
 
   @@WELCOME_MESSAGE = "\n\tWelcome to Hangman!
   \nPlease select an option:\n
@@ -18,7 +14,7 @@ class Hangman
     system('clear') || system('cls')
     print @@WELCOME_MESSAGE
     @game_mode = select_mode
-    game_mode == 'n' ? new_game : load_game
+    set_game_parameters(game_mode)
   end
 
   def select_word(word = '')
@@ -40,26 +36,40 @@ class Hangman
     mode
   end
 
+  def set_game_parameters(game_mode)
+    if game_mode == 'n'
+      @word = select_word
+      @spaces = Array.new(word.length, '_ ')
+      @guesses = []
+      @incorrect_guesses = 10
+      @guessed_word = false
+      @saved = false
+      new_game
+    else
+      load_game
+    end
+  end
+
   def new_game
-    @word = select_word
-    @spaces = Array.new(word.length, '_ ')
-    @guesses = []
-    @incorrect_guesses = 10
-    @guessed_word = false
-    game until incorrect_guesses == 0 || guessed_word == true
-    game
-    puts incorrect_guesses == 0 ? "\n\nYou lose! The correct word was #{word}." : "\n\nCongratulations! You guessed the word!"
+    game until incorrect_guesses == 0 || guessed_word == true || saved == true
+    unless saved == true
+      game
+      puts incorrect_guesses == 0 ? "\n\nYou lose! The correct word was #{word}." : "\n\nCongratulations! You guessed the word!"
+    end
   end
 
   def game
     system('clear') || system('cls')
     puts "\n\tWelcome to Hangman!\n\nGuess the word correctly to win.\nType the word 'save' at any time to save your game.\n"
-    if guessed_word == true || incorrect_guesses == 0
-      display_spaces
+    if guesses.empty? == false && guesses.last.strip == 'save'
+      save_game
+      self.saved = true
     else
       display_spaces
-      make_guess
-      check_guess
+      unless guessed_word == true || incorrect_guesses == 0
+        make_guess
+        check_guess
+      end
     end
   end
 
@@ -87,12 +97,27 @@ class Hangman
 
   def save_game
     system('clear') || system('cls')
-    SaveFile.save_game()
+    Dir.mkdir('save_files') unless Dir.exist?('save_files')
+    File.open('./save_files/saved_game.yml', 'w') do |save_file|
+      YAML.dump([] << self, save_file)
+    end
+    puts "Game Saved\n\n" ; sleep 1
   end
 
   def load_game
     system('clear') || system('cls')
-    puts "game loaded"
+    yaml = File.open('./save_files/saved_game.yml', 'r') { |save_file| YAML.load(save_file) }
+    self.game_mode = yaml[0].game_mode
+    self.word = yaml[0].word
+    self.spaces = yaml[0].spaces
+    self.guesses = yaml[0].guesses
+    self.incorrect_guesses = yaml[0].incorrect_guesses
+    self.guessed_word = yaml[0].guessed_word
+    self.saved = yaml[0].saved
+
+    self.guesses.pop
+    puts 'Game Loaded'; sleep 1
+    new_game
   end
 end
 
